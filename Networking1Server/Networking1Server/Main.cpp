@@ -2,6 +2,8 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <stdio.h>
+#include <string>
+#include <iostream>
 
 #pragma comment(lib, "Ws2_32.lib")
 
@@ -60,8 +62,7 @@ int main() {
 	const unsigned int BUF_LEN = 512;
 
 	char recv_buf[BUF_LEN];
-
-
+	char send_buf[BUF_LEN];
 
 	// Struct that will hold the IP address of the client that sent the message (we don't have accept() anymore to learn the address)
 	struct sockaddr_in fromAddr;
@@ -69,19 +70,35 @@ int main() {
 	fromlen = sizeof(fromAddr);
 
 	for (;;) {
+		printf("Enter message: ");
+		std::string line;
+		std::getline(std::cin, line);
+		line += "\n";
+		char* message = (char*)line.c_str();
+
+		// send msg to server
+
+		if (sendto(server_socket, message, BUF_LEN, 0,
+			ptr->ai_addr, ptr->ai_addrlen) == SOCKET_ERROR) {
+			printf("sendto() failed %d\n", WSAGetLastError());
+			return 1;
+		}
+
 		memset(recv_buf, 0, BUF_LEN);
 		if (recvfrom(server_socket, recv_buf, sizeof(recv_buf), 0, (struct sockaddr*) & fromAddr, &fromlen) == SOCKET_ERROR) {
 			printf("recvfrom() failed...%d\n", WSAGetLastError());
 			return 1;
 		}
-
 		printf("Received: %s\n", recv_buf);
+	}
+
+		
 
 		char ipbuf[INET_ADDRSTRLEN];
 		//		printf("Dest IP address: %s\n", inet_ntop(AF_INET, &fromAddr, ipbuf, sizeof(ipbuf)));
 		//		printf("Source IP address: %s\n", inet_ntop(AF_INET, &fromAddr, ipbuf, sizeof(ipbuf)));
 
-	}
+
 	closesocket(server_socket);
 	freeaddrinfo(ptr);
 	WSACleanup();
