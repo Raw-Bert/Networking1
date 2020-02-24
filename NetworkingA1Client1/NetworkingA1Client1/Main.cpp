@@ -50,9 +50,17 @@ int main() {
 	}
 
 	const unsigned int BUF_LEN = 512;
+	// Receive msg from client
+	//const unsigned int BUF_LEN = 512;
+
+	char recv_buf[BUF_LEN];
 
 	char send_buf[BUF_LEN];
 	memset(send_buf, 0, BUF_LEN);
+
+	struct sockaddr_in fromAddr;
+	int fromlen;
+	fromlen = sizeof(fromAddr);
 
 	for (;;) {
 		printf("Enter message: ");
@@ -71,8 +79,21 @@ int main() {
 
 		printf("Message sent...\n");
 
+		//memset(recv_buf, 0, BUF_LEN);
+		//if (recvfrom(cli_socket, recv_buf, sizeof(recv_buf), 0, (struct sockaddr*) & fromAddr, &fromlen) == SOCKET_ERROR) {
+		//	printf("recvfrom() failed...%d\n", WSAGetLastError());
+		//	return 1;
+		//}
 
+		//printf("Received: %s\n", recv_buf);
+
+		//char ipbuf[INET_ADDRSTRLEN];
+		//		printf("Dest IP address: %s\n", inet_ntop(AF_INET, &fromAddr, ipbuf, sizeof(ipbuf)));
+		//		printf("Source IP address: %s\n", inet_ntop(AF_INET, &fromAddr, ipbuf, sizeof(ipbuf)));
 	}
+	
+
+		
 
 
 	//Shutdown the socket
