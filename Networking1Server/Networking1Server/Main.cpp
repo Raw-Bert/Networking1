@@ -1,3 +1,4 @@
+///// UDP Server
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <stdio.h>
@@ -23,10 +24,11 @@ int main() {
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
+	hints.ai_socktype = SOCK_DGRAM;
+	hints.ai_protocol = IPPROTO_UDP;
+	hints.ai_flags = AI_PASSIVE;
 
-	if (getaddrinfo(NULL, "5000", &hints, &ptr) != 0) {
+	if (getaddrinfo(NULL, "8888", &hints, &ptr) != 0) {
 		printf("Getaddrinfo failed!! %d\n", WSAGetLastError());
 		WSACleanup();
 		return 1;
@@ -34,7 +36,7 @@ int main() {
 
 	SOCKET server_socket;
 
-	server_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
+	server_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 
 	if (server_socket == INVALID_SOCKET) {
 		printf("Failed creating a socket %d\n", WSAGetLastError());
@@ -52,72 +54,37 @@ int main() {
 		return 1;
 	}
 
-	// Listen on socket
+	printf("Waiting for Data...\n");
 
-	if (listen(server_socket, SOMAXCONN) == SOCKET_ERROR) {
-		printf("Listen failed: %d\n", WSAGetLastError());
-		closesocket(server_socket);
-		freeaddrinfo(ptr);
-		WSACleanup();
-		return 1;
-	}
-
-	printf("Waiting for connections...\n");
-
-	// Accept a connection (multiple clients --> threads)
-
-	SOCKET client_socket;
-
-	client_socket = accept(server_socket, NULL, NULL);
-
-	if (client_socket == INVALID_SOCKET) {
-		printf("Accept() failed %d\n", WSAGetLastError());
-		closesocket(server_socket);
-		freeaddrinfo(ptr);
-		WSACleanup();
-		return 1;
-
-	}
-
-	printf("Client connected!!\n");
-
-	// Send a msg to client
+	// Receive msg from client
 	const unsigned int BUF_LEN = 512;
 
-	char send_buf[BUF_LEN];
-	memset(send_buf, 0, BUF_LEN);
-	strcpy_s(send_buf, "Welcome to INFR3830 server!!!\r\n");
+	char recv_buf[BUF_LEN];
 
-	if (send(client_socket, send_buf, BUF_LEN, 0) == SOCKET_ERROR) {
-		printf("Failed to send msg to client %d\n", WSAGetLastError());
-		closesocket(client_socket);
-		freeaddrinfo(ptr);
-		WSACleanup();
-		return 1;
+
+
+	// Struct that will hold the IP address of the client that sent the message (we don't have accept() anymore to learn the address)
+	struct sockaddr_in fromAddr;
+	int fromlen;
+	fromlen = sizeof(fromAddr);
+
+	for (;;) {
+		memset(recv_buf, 0, BUF_LEN);
+		if (recvfrom(server_socket, recv_buf, sizeof(recv_buf), 0, (struct sockaddr*) & fromAddr, &fromlen) == SOCKET_ERROR) {
+			printf("recvfrom() failed...%d\n", WSAGetLastError());
+			return 1;
+		}
+
+		printf("Received: %s\n", recv_buf);
+
+		char ipbuf[INET_ADDRSTRLEN];
+		//		printf("Dest IP address: %s\n", inet_ntop(AF_INET, &fromAddr, ipbuf, sizeof(ipbuf)));
+		//		printf("Source IP address: %s\n", inet_ntop(AF_INET, &fromAddr, ipbuf, sizeof(ipbuf)));
+
 	}
-
-	printf("Message sent to client\n");
-
-	//Shutdown the socket
-
-	if (shutdown(client_socket, SD_BOTH) == SOCKET_ERROR) {
-		printf("Shutdown failed!  %d\n", WSAGetLastError());
-		closesocket(server_socket);
-		WSACleanup();
-		return 1;
-	}
-
 	closesocket(server_socket);
 	freeaddrinfo(ptr);
 	WSACleanup();
 
 	return 0;
-
-
-
-
-
-
-
-
 }
