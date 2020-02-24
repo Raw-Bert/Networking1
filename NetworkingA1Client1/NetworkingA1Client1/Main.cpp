@@ -7,8 +7,12 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
-int main() {
 
+int main() {
+	printf("Please Enter Your IP Address: ");
+	char ipAd[50];
+	std::cin >> ipAd;
+	//(PCSTR)ipAd;
 	//Initialize winsock
 	WSADATA wsa;
 
@@ -20,8 +24,6 @@ int main() {
 		return 1;
 	}
 
-
-
 	//Create a client socket
 
 	struct addrinfo* ptr = NULL, hints;
@@ -31,7 +33,7 @@ int main() {
 	hints.ai_socktype = SOCK_DGRAM;
 	hints.ai_protocol = IPPROTO_UDP;
 
-	if (getaddrinfo("10.190.14.53", "8888", &hints, &ptr) != 0) {
+	if (getaddrinfo(ipAd, "8888", &hints, &ptr) != 0) {
 		printf("Getaddrinfo failed!! %d\n", WSAGetLastError());
 		WSACleanup();
 		return 1;
@@ -46,8 +48,6 @@ int main() {
 		WSACleanup();
 		return 1;
 	}
-
-
 
 	const unsigned int BUF_LEN = 512;
 
