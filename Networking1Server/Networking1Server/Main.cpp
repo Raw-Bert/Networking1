@@ -70,26 +70,34 @@ int main() {
 	fromlen = sizeof(fromAddr);
 
 	for (;;) {
+
+		printf("waiting for messages...\n");
+		memset(recv_buf, 0, BUF_LEN);
+		if (recvfrom(server_socket, recv_buf, sizeof(recv_buf), 0, (struct sockaddr*) & fromAddr, &fromlen) == SOCKET_ERROR) {
+			printf("recvfrom() failed...%d\n", WSAGetLastError());
+			return 1;
+		}
+
+		printf("Received: %s\n", recv_buf);
+
+		char ipbuf[INET_ADDRSTRLEN];
+		//		printf("Dest IP address: %s\n", inet_ntop(AF_INET, &fromAddr, ipbuf, sizeof(ipbuf)));
+		//		printf("Source IP address: %s\n", inet_ntop(AF_INET, &fromAddr, ipbuf, sizeof(ipbuf)));
+
+		//server can send messages too
 		printf("Enter message: ");
 		std::string line;
 		std::getline(std::cin, line);
 		line += "\n";
 		char* message = (char*)line.c_str();
 
-		// send msg to server
-
-		if (sendto(server_socket, message, BUF_LEN, 0,
-			ptr->ai_addr, ptr->ai_addrlen) == SOCKET_ERROR) {
+		if (sendto(server_socket, message, BUF_LEN, 0, (struct sockaddr*) & fromAddr, fromlen) == SOCKET_ERROR)
+		{
 			printf("sendto() failed %d\n", WSAGetLastError());
-			return 1;
 		}
 
-		memset(recv_buf, 0, BUF_LEN);
-		if (recvfrom(server_socket, recv_buf, sizeof(recv_buf), 0, (struct sockaddr*) & fromAddr, &fromlen) == SOCKET_ERROR) {
-			printf("recvfrom() failed...%d\n", WSAGetLastError());
-			return 1;
-		}
-		printf("Received: %s\n", recv_buf);
+		printf("Message sent...\n\n");
+
 	}
 
 		

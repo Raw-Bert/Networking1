@@ -9,7 +9,7 @@
 
 
 int main() {
-	printf("Please Enter Your IP Address: ");
+	printf("Please Enter Server IP Address: ");
 	char ipAd[50];
 	std::cin >> ipAd;
 	//(PCSTR)ipAd;
@@ -62,34 +62,36 @@ int main() {
 	int fromlen;
 	fromlen = sizeof(fromAddr);
 
-	for (;;) {
+	for (;;)
+	{
+		//setsockopt
 		printf("Enter message: ");
 		std::string line;
 		std::getline(std::cin, line);
 		line += "\n";
 		char* message = (char*)line.c_str();
 
-		// send msg to server
+		//Send msg to server
 
-		if (sendto(cli_socket, message, BUF_LEN, 0,
-			ptr->ai_addr, ptr->ai_addrlen) == SOCKET_ERROR) {
+		if (sendto(cli_socket, message, BUF_LEN, 0, ptr->ai_addr, ptr->ai_addrlen) == SOCKET_ERROR)
+		{
 			printf("sendto() failed %d\n", WSAGetLastError());
-			return 1;
+			//return 1;
 		}
 
 		printf("Message sent...\n");
 
+		//client can recieve messages 
+		printf("Waiting for messages...\n");
+
 		memset(recv_buf, 0, BUF_LEN);
-		if (recvfrom(cli_socket, recv_buf, sizeof(recv_buf), 0, (struct sockaddr*) & fromAddr, &fromlen) == SOCKET_ERROR) {
+		if (recvfrom(cli_socket, recv_buf, sizeof(recv_buf), 0, ptr->ai_addr, &fromlen) == SOCKET_ERROR) {
 			printf("recvfrom() failed...%d\n", WSAGetLastError());
 			return 1;
 		}
 
 		printf("Received: %s\n", recv_buf);
 
-		char ipbuf[INET_ADDRSTRLEN];
-		//		printf("Dest IP address: %s\n", inet_ntop(AF_INET, &fromAddr, ipbuf, sizeof(ipbuf)));
-		//		printf("Source IP address: %s\n", inet_ntop(AF_INET, &fromAddr, ipbuf, sizeof(ipbuf)));
 	}
 	
 
