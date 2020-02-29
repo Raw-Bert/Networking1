@@ -39,7 +39,7 @@ void setString()
 	}
 }
 
-int main(int arg0,char* arg1[]) {
+int main(int arg0, char* arg1[]) {
 	//Initialize winsock
 	WSADATA wsa;
 
@@ -102,11 +102,10 @@ int main(int arg0,char* arg1[]) {
 	// Accept a connection (multiple clients --> threads)
 
 	SOCKET client_socket;
-	
+
 
 	client_socket = accept(server_socket, NULL, NULL);
 	BOOL j = TRUE;
-	setsockopt(client_socket, IPPROTO_TCP, TCP_NODELAY, (const char*)& j, sizeof(BOOL));
 
 	if (client_socket == INVALID_SOCKET) {
 		printf("Accept() failed %d\n", WSAGetLastError());
@@ -123,6 +122,7 @@ int main(int arg0,char* arg1[]) {
 	const unsigned int BUF_LEN = 512;
 
 	char send_buf[BUF_LEN];
+	
 	memset(send_buf, 0, BUF_LEN);
 	strcpy_s(send_buf, "Connected to Server!\r\n");
 
@@ -134,6 +134,7 @@ int main(int arg0,char* arg1[]) {
 		return 1;
 	}
 
+	//setsockopt(server_socket, IPPROTO_TCP, TCP_NODELAY, (const char*)& j, sizeof(BOOL));
 	printf("Connection confirmation sent to client!\n");
 
 	std::thread message(setString);
@@ -141,33 +142,35 @@ int main(int arg0,char* arg1[]) {
 	for (;;)
 	{
 		//Client can recieve messages 
-		printf("Waiting for messages...\n");
-
+		//printf("Waiting for messages...\n");
+		
 		memset(send_buf, 0, BUF_LEN);
-		if (recv(client_socket, send_buf, sizeof(send_buf), 0) == SOCKET_ERROR) {
+		if (recv(client_socket, send_buf, sizeof(send_buf), MSG_PARTIAL) == SOCKET_ERROR) {
 			printf("recvfrom() failed...%d\n", WSAGetLastError());
 			SetLastError("", WSAGetLastError());
 			printf(GetLastNetworkError().c_str());
 			return 1;
 		}
 
-		printf("Received: %s\n", send_buf);
+		//printf("Received: %s\n", send_buf);
 
-		printf("Enter message: ");
-		
+		//printf("Enter message: ");
+
 
 		//Send msg to server
-		if(messageStr.size()>0)
-		if (send(client_socket, messageStr.c_str(), BUF_LEN, 0) == SOCKET_ERROR)
+		if (messageStr.size() > 0)
 		{
-			printf("sendto() failed %d\n", WSAGetLastError());
-			SetLastError("", WSAGetLastError());
-			printf(GetLastNetworkError().c_str());
-			//return 1;
+			if (send(client_socket, messageStr.c_str(), BUF_LEN, 0) == SOCKET_ERROR)
+			{
+				printf("send() failed %d\n", WSAGetLastError());
+				SetLastError("", WSAGetLastError());
+				printf(GetLastNetworkError().c_str());
+				//return 1;
+			}
+			messageStr.clear();
+
+			printf("Message sent...\n");
 		}
-		//messageStr.clear();
-		
-		printf("Message sent...\n");
 	}
 
 	//Shutdown the socket

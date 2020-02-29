@@ -77,7 +77,6 @@ int main() {
 
 	cli_socket = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
 	BOOL j = TRUE;
-	setsockopt(cli_socket,IPPROTO_TCP,TCP_NODELAY, (const char*)&j, sizeof(BOOL));
 
 	if (cli_socket == INVALID_SOCKET) {
 		printf("Failed creating a socket %d\n", WSAGetLastError());
@@ -95,6 +94,9 @@ int main() {
 		return 1;
 	}
 
+	// Change to non-blocking mode
+	u_long mode = 1; // 0 for blocking mode
+	ioctlsocket(cli_socket, FIONBIO, &mode);
 	printf("Connected to the server\n");
 
 	const unsigned int BUF_LEN = 512;
@@ -109,33 +111,33 @@ int main() {
 	message.detach();
 	for (;;)
 	{
-		printf("Enter message: ");
-		
+		//printf("Enter message: ");
+
 
 		//Send msg to server
-		if(messageStr.size() > 0)
-		if (send(cli_socket, messageStr.c_str(), BUF_LEN, 0) == SOCKET_ERROR)
-		{
-			printf("sendto() failed %d\n", WSAGetLastError());
-			SetLastError("",WSAGetLastError());
-			printf(GetLastNetworkError().c_str());
-			//return 1;
-		}
+		if (messageStr.size() > 0)
+			if (send(cli_socket, messageStr.c_str(), BUF_LEN, 0) == SOCKET_ERROR)
+			{
+				//printf("sendto() failed %d\n", WSAGetLastError());
+				//SetLastError("", WSAGetLastError());
+				//printf(GetLastNetworkError().c_str());
+				//return 1;
+			}
 		//messageStr.clear();
-		printf("Message sent...\n");
-		
+		//printf("Message sent...\n");
+
 		//Client can recieve messages 
-		printf("Waiting for messages...\n");
-		
+		//printf("Waiting for messages...\n");
+
 		memset(recv_buf, 0, BUF_LEN);
 		if (recv(cli_socket, recv_buf, sizeof(recv_buf), 0) == SOCKET_ERROR) {
-			printf("recvfrom() failed...%d\n", WSAGetLastError());
-			SetLastError("", WSAGetLastError());
-			printf(GetLastNetworkError().c_str());
-			return 1;
+		//	printf("recvfrom() failed...%d\n", WSAGetLastError());
+		//	SetLastError("", WSAGetLastError());
+		//	printf(GetLastNetworkError().c_str());
+			//return 1;
 		}
-		
-		printf("Received: %s\n", recv_buf);
+
+		//printf("Received: %s\n", recv_buf);
 
 	}
 
