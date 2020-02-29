@@ -63,6 +63,9 @@ int main() {
 
 	const unsigned int BUF_LEN = 512;
 
+	u_long mode = 1;
+	ioctlsocket(cli_socket, FIONBIO, &mode);
+
 	char recv_buf[BUF_LEN];
 	memset(recv_buf, 0, BUF_LEN);
 
