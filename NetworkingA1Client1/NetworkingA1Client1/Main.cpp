@@ -9,10 +9,11 @@
 
 
 int main() {
+	// - Prompts user to enter the IP address of the server - //
 	printf("Please Enter Server IP Address: ");
 	char ipAd[50];
 	std::cin >> ipAd;
-	//(PCSTR)ipAd;
+
 	//Initialize winsock
 	WSADATA wsa;
 
@@ -49,6 +50,8 @@ int main() {
 		return 1;
 	}
 
+
+
 	const unsigned int BUF_LEN = 512;
 	// Receive msg from client
 	//const unsigned int BUF_LEN = 512;
@@ -61,10 +64,13 @@ int main() {
 	struct sockaddr_in fromAddr;
 	int fromlen;
 	fromlen = sizeof(fromAddr);
-
+	//int test = 200;
+	//setsockopt(cli_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)& test, sizeof(test));
+	
+	
 	for (;;)
 	{
-		//setsockopt
+		
 		printf("Enter message: ");
 		std::string line;
 		std::getline(std::cin, line);
@@ -81,7 +87,7 @@ int main() {
 
 		printf("Message sent...\n");
 
-		//client can recieve messages 
+		//Client can recieve messages 
 		printf("Waiting for messages...\n");
 
 		memset(recv_buf, 0, BUF_LEN);
@@ -93,9 +99,6 @@ int main() {
 		printf("Received: %s\n", recv_buf);
 
 	}
-	
-
-		
 
 
 	//Shutdown the socket
@@ -113,11 +116,30 @@ int main() {
 
 	return 0;
 
+}
 
+// - Takes in Username that will be tracked in server so clients know who sends each message - //
+// If username is taken already, server will return false and client will be promted to choose a new username
+void createNickname()
+{
+	bool nameAccepted = false;
 
+	do {
+		//takes in nickname
+		std::string name;
+		printf("Please Enter Your Nickname: ");
 
+		std::cin >> name;
 
+		//Sends nickname to server
+		//myclient->sendsting(name);
+		//myclient->getBool(nameAccepted);
 
-
-
+			
+		if (!nameAccepted)
+		{
+			printf("Name Taken, Please Choose A Different Name");
+		}
+	} while (!nameAccepted); //repeats if name not accepted
+	
 }

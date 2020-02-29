@@ -36,6 +36,7 @@ int main() {
 		return 1;
 	}
 
+	//Create Socket
 	SOCKET server_socket;
 
 	server_socket = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -68,7 +69,8 @@ int main() {
 	struct sockaddr_in fromAddr;
 	int fromlen;
 	fromlen = sizeof(fromAddr);
-
+	//int test = 200;
+	//setsockopt(server_socket, SOL_SOCKET, SO_RCVTIMEO, (const char*)& test, sizeof(test));
 	for (;;) {
 
 		printf("waiting for messages...\n");
@@ -111,5 +113,16 @@ int main() {
 	freeaddrinfo(ptr);
 	WSACleanup();
 
+	return 0;
+}
+
+bool AddUser(std::string nickname)
+{
+	//For each username in the index
+	//If a username matches nickname
+		//return false;
+	//else
+		//add nickname to index
+	    //return true;
 	return 0;
 }
