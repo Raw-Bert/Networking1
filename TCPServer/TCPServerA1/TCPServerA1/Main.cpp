@@ -1,45 +1,11 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <stdio.h>
-#include <string>
-#include <iostream>
-#include <thread>
 
 #pragma comment(lib, "Ws2_32.lib")
 
-std::string last;
+int main() {
 
-std::string GetLastNetworkError()
-{
-	static std::string tmp; tmp = last;
-	return last.clear(), tmp;
-}
-
-void SetLastError(const char* head, int code)
-{
-	void* lpMsgBuf = nullptr;
-	FormatMessage(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER |
-		FORMAT_MESSAGE_FROM_SYSTEM |
-		FORMAT_MESSAGE_IGNORE_INSERTS,
-		NULL,
-		(DWORD)code,
-		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
-		(LPTSTR)& lpMsgBuf,
-		0, NULL);
-
-	last = std::string(head) + (const char*)lpMsgBuf;
-}
-std::string messageStr;
-void setString()
-{
-	for (;;)
-	{
-		std::cin >> messageStr;
-	}
-}
-
-int main(int arg0, char* arg1[]) {
 	//Initialize winsock
 	WSADATA wsa;
 
@@ -54,7 +20,6 @@ int main(int arg0, char* arg1[]) {
 	//Create a Server socket
 
 	struct addrinfo* ptr = NULL, hints;
-	int fromlen;
 
 	memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -103,9 +68,7 @@ int main(int arg0, char* arg1[]) {
 
 	SOCKET client_socket;
 
-
 	client_socket = accept(server_socket, NULL, NULL);
-	BOOL j = TRUE;
 
 	if (client_socket == INVALID_SOCKET) {
 		printf("Accept() failed %d\n", WSAGetLastError());
@@ -122,9 +85,8 @@ int main(int arg0, char* arg1[]) {
 	const unsigned int BUF_LEN = 512;
 
 	char send_buf[BUF_LEN];
-	
 	memset(send_buf, 0, BUF_LEN);
-	strcpy_s(send_buf, "Connected to Server!\r\n");
+	strcpy_s(send_buf, "Welcome to INFR3830 server!!!\r\n");
 
 	if (send(client_socket, send_buf, BUF_LEN, 0) == SOCKET_ERROR) {
 		printf("Failed to send msg to client %d\n", WSAGetLastError());
@@ -134,48 +96,11 @@ int main(int arg0, char* arg1[]) {
 		return 1;
 	}
 
-	//setsockopt(server_socket, IPPROTO_TCP, TCP_NODELAY, (const char*)& j, sizeof(BOOL));
-	printf("Connection confirmation sent to client!\n");
-
-	std::thread message(setString);
-	message.detach();
-	for (;;)
-	{
-		//Client can recieve messages 
-		//printf("Waiting for messages...\n");
-		
-		memset(send_buf, 0, BUF_LEN);
-		if (recv(client_socket, send_buf, sizeof(send_buf), MSG_PARTIAL) == SOCKET_ERROR) {
-			printf("recvfrom() failed...%d\n", WSAGetLastError());
-			SetLastError("", WSAGetLastError());
-			printf(GetLastNetworkError().c_str());
-			return 1;
-		}
-
-		//printf("Received: %s\n", send_buf);
-
-		//printf("Enter message: ");
-
-
-		//Send msg to server
-		if (messageStr.size() > 0)
-		{
-			if (send(client_socket, messageStr.c_str(), BUF_LEN, 0) == SOCKET_ERROR)
-			{
-				printf("send() failed %d\n", WSAGetLastError());
-				SetLastError("", WSAGetLastError());
-				printf(GetLastNetworkError().c_str());
-				//return 1;
-			}
-			messageStr.clear();
-
-			printf("Message sent...\n");
-		}
-	}
+	printf("Message sent to client\n");
 
 	//Shutdown the socket
 
-	if (shutdown(server_socket, SD_BOTH) == SOCKET_ERROR) {
+	if (shutdown(client_socket, SD_BOTH) == SOCKET_ERROR) {
 		printf("Shutdown failed!  %d\n", WSAGetLastError());
 		closesocket(server_socket);
 		WSACleanup();
@@ -188,8 +113,14 @@ int main(int arg0, char* arg1[]) {
 
 	return 0;
 
-}
 
+
+
+
+
+
+
+}
 // - Takes in Username that will be tracked in server so clients know who sends each message - //
 // If username is taken already, server will return false and client will be promted to choose a new username
 void createNickname()
