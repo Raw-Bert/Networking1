@@ -1,9 +1,87 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #include <stdio.h>
+#include <string>
+#include <sstream>
+#include <iostream>
+#include <vector>
+#include <thread>
 
 #pragma comment(lib, "Ws2_32.lib")
 
+fd_set all_sockets;
+
+
+struct Client
+{
+	Client(SOCKET _clientSocket, std::string _clientName) : _cs(_clientSocket), _cName(_clientName) {};
+	SOCKET _cs;
+	std::string _cName;
+};
+
+
+
+std::string last;
+
+std::string GetLastNetworkError()
+{
+	static std::string tmp; tmp = last;
+	return last.clear(), tmp;
+}
+
+void SetLastError(const char* head, int code)
+{
+	void* lpMsgBuf = nullptr;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM |
+		FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		(DWORD)code,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)& lpMsgBuf,
+		0, NULL);
+
+	last = std::string(head) + (const char*)lpMsgBuf;
+}
+void sendMessage(SOCKET cli_socket)
+{
+	std::string msg;
+
+	while (true)
+	{
+		std::getline(std::cin, msg);
+		int size = ((int)msg.size() + 1);
+		if (send(cli_socket, (char*)& size, 4, 0) == SOCKET_ERROR) {
+			//printf("Failed to send msg to client %d\n", WSAGetLastError());
+			//closesocket(cli_socket);
+			//freeaddrinfo(ptr);
+			//WSACleanup();
+			//return 1;
+		}
+		if (send(cli_socket, (char*)msg.c_str(), size, 0) == SOCKET_ERROR) {
+			//printf("Failed to send msg to client %d\n", WSAGetLastError());
+			//closesocket(cli_socket);
+			//freeaddrinfo(ptr);
+			//WSACleanup();
+			//return 1;
+		}
+	}
+}
+
+void recvMessege(SOCKET cli_socket)
+{
+	std::string msg;
+	while (true)
+	{
+		int size = 0;
+		if (recv(cli_socket, (char*)& size, 4, 0) > 0);
+		msg.resize(size);
+		if (recv(cli_socket, (char*)msg.c_str(), size, 0) > 0);
+		//printf("Received from server: %s\n", recv_buf);
+		printf("Message Received: %s\n", msg.c_str());
+	}
+}
 int main() {
 
 	//Initialize winsock
@@ -63,6 +141,9 @@ int main() {
 	}
 
 	printf("Waiting for connections...\n");
+
+	FD_ZERO(&all_sockets);
+	FD_SET(server_socket, &all_sockets);
 
 	// Accept a connection (multiple clients --> threads)
 

@@ -6,6 +6,54 @@
 
 #pragma comment(lib, "Ws2_32.lib")
 
+// - Takes in Username that will be tracked in server so clients know who sends each message - //
+// If username is taken already, server will return false and client will be promted to choose a new username
+void createNickname()
+{
+	
+
+}
+
+void sendMessage(SOCKET cli_socket)
+{
+	std::string msg;
+
+	while (true)
+	{
+		std::getline(std::cin, msg);
+		int size = ((int)msg.size() + 1);
+		if (send(cli_socket, (char*)&size, 4, 0) == SOCKET_ERROR) {
+			//printf("Failed to send msg to client %d\n", WSAGetLastError());
+			//closesocket(cli_socket);
+			//freeaddrinfo(ptr);
+			//WSACleanup();
+			//return 1;
+		}
+		if (send(cli_socket, (char*)msg.c_str(), size, 0) == SOCKET_ERROR) {
+			//printf("Failed to send msg to client %d\n", WSAGetLastError());
+			//closesocket(cli_socket);
+			//freeaddrinfo(ptr);
+			//WSACleanup();
+			//return 1;
+		}
+	}
+}
+
+void recvMessege(SOCKET cli_socket)
+{
+	std::string msg;
+	while (true)
+	{
+		int size = 0;
+		if (recv(cli_socket, (char*)& size, 4, 0) > 0);
+		msg.resize(size);
+		if (recv(cli_socket,(char*)msg.c_str(), size, 0) > 0);
+			//printf("Received from server: %s\n", recv_buf);
+		printf("Message Received: %s\n", msg.c_str());
+	}
+}
+
+
 int main() {
 	//Client prompted to input server IP
 	// - Prompts user to enter the IP address of the server - //
