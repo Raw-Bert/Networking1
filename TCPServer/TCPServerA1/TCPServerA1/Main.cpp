@@ -3,9 +3,72 @@
 #include <stdio.h>
 #include <string>
 #include <iostream>
+#include <vector>
+#include <thread>
 
 #pragma comment(lib, "Ws2_32.lib")
 
+std::string last;
+
+std::string GetLastNetworkError()
+{
+	static std::string tmp; tmp = last;
+	return last.clear(), tmp;
+}
+
+void SetLastError(const char* head, int code)
+{
+	void* lpMsgBuf = nullptr;
+	FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER |
+		FORMAT_MESSAGE_FROM_SYSTEM |
+		FORMAT_MESSAGE_IGNORE_INSERTS,
+		NULL,
+		(DWORD)code,
+		MAKELANGID(LANG_NEUTRAL, SUBLANG_DEFAULT),
+		(LPTSTR)& lpMsgBuf,
+		0, NULL);
+
+	last = std::string(head) + (const char*)lpMsgBuf;
+}
+void sendMessage(SOCKET cli_socket)
+{
+	std::string msg;
+
+	while (true)
+	{
+		std::getline(std::cin, msg);
+		int size = ((int)msg.size() + 1);
+		if (send(cli_socket, (char*)& size, 4, 0) == SOCKET_ERROR) {
+			//printf("Failed to send msg to client %d\n", WSAGetLastError());
+			//closesocket(cli_socket);
+			//freeaddrinfo(ptr);
+			//WSACleanup();
+			//return 1;
+		}
+		if (send(cli_socket, (char*)msg.c_str(), size, 0) == SOCKET_ERROR) {
+			//printf("Failed to send msg to client %d\n", WSAGetLastError());
+			//closesocket(cli_socket);
+			//freeaddrinfo(ptr);
+			//WSACleanup();
+			//return 1;
+		}
+	}
+}
+
+void recvMessege(SOCKET cli_socket)
+{
+	std::string msg;
+	while (true)
+	{
+		int size = 0;
+		if (recv(cli_socket, (char*)& size, 4, 0) > 0);
+		msg.resize(size);
+		if (recv(cli_socket, (char*)msg.c_str(), size, 0) > 0);
+		//printf("Received from server: %s\n", recv_buf);
+		printf("Message Recieved: %s\n", msg.c_str());
+	}
+}
 int main() {
 
 	//Initialize winsock
@@ -90,8 +153,59 @@ int main() {
 	memset(send_buf, 0, BUF_LEN);
 	strcpy_s(send_buf, "Welcome to INFR3830 server!!!\r\n");
 
+
+	//when client connects.
+	std::vector<std::string> nicknames;
+	std::string nickname;
+	bool nameCheck = false;
+
+	if (recv(client_socket, send_buf, BUF_LEN, 0) > 0);
+	{
+		nickname = send_buf;
+		printf("Received client username: %s\n", send_buf);
+		SetLastError("", WSAGetLastError());
+		printf(GetLastNetworkError().c_str());
+		nicknames.push_back(nickname);
+		printf("Nickname stored at: %i\n" , nicknames.size());
+		printf("\n");
+		bool nameCheck = true;
+		//nameCheck.resize(BUF_LEN);
+
+		if (send(client_socket, (char*) &nameCheck, sizeof(bool), 0) == SOCKET_ERROR) {
+			printf("Failed to send msg to client %d\n", WSAGetLastError());
+			SetLastError("", WSAGetLastError());
+			printf(GetLastNetworkError().c_str());
+		}
+	}
+	
+
+	//{
+	//	printf("Received client username: %s\n", send_buf);
+	//	//nicknames[i] = nickname;
+	//	nickname = send_buf;
+	//	nicknames.push_back(nickname);
+	//	std::cout << "Client Nickname: " + nickname + " Stored at index " << std::endl;
+	//	return true;
+	//}
+
+//recieve username and/OR IP address
+//Put in index/vector
+//check vector to make sure not already there
+//return
+//send return value to client.
+	
+	std::thread sende(sendMessage, client_socket);
+	std::thread recieve(recvMessege, client_socket);
+	while (true)
+	{
+
+	}
+
+
 	if (send(client_socket, send_buf, BUF_LEN, 0) == SOCKET_ERROR) {
 		printf("Failed to send msg to client %d\n", WSAGetLastError());
+		SetLastError("", WSAGetLastError());
+		printf(GetLastNetworkError().c_str());
 		closesocket(client_socket);
 		freeaddrinfo(ptr);
 		WSACleanup();
@@ -104,6 +218,8 @@ int main() {
 
 	if (shutdown(client_socket, SD_BOTH) == SOCKET_ERROR) {
 		printf("Shutdown failed!  %d\n", WSAGetLastError());
+		SetLastError("", WSAGetLastError());
+		printf(GetLastNetworkError().c_str());
 		closesocket(server_socket);
 		WSACleanup();
 		return 1;
@@ -114,37 +230,5 @@ int main() {
 	WSACleanup();
 
 	return 0;
-
-
-
-
-
-
-
-
-}
-// - Takes in Username that will be tracked in server so clients know who sends each message - //
-// If username is taken already, server will return false and client will be promted to choose a new username
-void createNickname()
-{
-	bool nameAccepted = false;
-
-	do {
-		//takes in nickname
-		std::string name;
-		printf("Please Enter Your Nickname: ");
-
-		std::cin >> name;
-
-		//Sends nickname to server
-		//myclient->sendsting(name);
-		//myclient->getBool(nameAccepted);
-
-
-		if (!nameAccepted)
-		{
-			printf("Name Taken, Please Choose A Different Name");
-		}
-	} while (!nameAccepted); //repeats if name not accepted
 
 }
